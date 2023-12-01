@@ -40,3 +40,19 @@ pub fn solution<I, O>(
 pub fn parse_to_strings(strings: Vec<String>) -> Vec<String> {
     strings
 }
+
+pub trait ReverseString {
+    fn reverse(&self) -> String;
+}
+
+impl ReverseString for String {
+    fn reverse(&self) -> String {
+        self.chars().rev().collect::<String>()
+    }
+}
+
+impl ReverseString for &str {
+    fn reverse(&self) -> String {
+        self.chars().rev().collect::<String>()
+    }
+}

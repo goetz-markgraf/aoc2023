@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use advent_of_code_2023::ReverseString;
+
 fn solve1(input: Vec<String>) -> i32 {
     let mut sum = 0;
     for line in input {
@@ -46,19 +48,19 @@ fn solve2(input: Vec<String>) -> i32 {
     let regex_forwards = regex::Regex::new(&regex_pattern_forward).unwrap();
 
     let regex_pattern_backwards = "(".to_owned() + &names_to_digit.keys()
-        .map(|k| format!("{}", k.chars().rev().collect::<String>()))
+        .map(|k| format!("{}", k.reverse()))
         .collect::<Vec<_>>()
         .join("|") + "|\\d)";
     let regex_backwards = regex::Regex::new(&regex_pattern_backwards).unwrap();
 
     for line in input {
-        let rev_line = line.chars().rev().collect::<String>();
+        let rev_line = line.reverse();
         let first_result = regex_forwards.find_iter(&line).next().unwrap();
         let last_result = regex_backwards.find_iter(&rev_line).next().unwrap();
 
         let first_matched = first_result.as_str();
         let first_digit = convert(&names_to_digit, first_matched);
-        let last_matched = last_result.as_str().chars().rev().collect::<String>();
+        let last_matched = last_result.as_str().reverse();
         let last_digit = convert(&names_to_digit, &last_matched);
 
         let line_result = first_digit * 10 + last_digit;
