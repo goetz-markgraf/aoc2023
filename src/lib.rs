@@ -35,6 +35,46 @@ pub fn solution<I, O>(
     }
 }
 
+pub fn solution_lines<O>(
+    input_file: &str,
+    solve: fn(Vec<String>) -> O,
+    expected: O,
+) -> bool
+    where
+        O: PartialEq + Debug,
+{
+    solution(input_file, parse_to_strings, solve, expected)
+}
+
+pub fn solution_both<I, O>(
+    input_file: &str,
+    parse: fn(Vec<String>) -> I,
+    solve1: fn(I) -> O,
+    solve2: fn(I) -> O,
+    expected1: O,
+    expected2: O,
+)
+    where O: PartialEq + Debug
+{
+    let start = std::time::Instant::now();
+    solution(input_file, parse, solve1, expected1);
+    solution(input_file, parse, solve2, expected2);
+    println!("{}: {}ms", input_file, start.elapsed().as_millis());
+}
+
+pub fn solution_both_lines<O>(
+    input_file: &str,
+    solve1: fn(Vec<String>) -> O,
+    solve2: fn(Vec<String>) -> O,
+    expected1: O,
+    expected2: O,
+)
+    where O: PartialEq + Debug
+{
+    solution_both(input_file, parse_to_strings, solve1, solve2, expected1, expected2);
+}
+
+
 // a function the takes a vector of strings and
 // returns the same vector without changing the strings
 pub fn parse_to_strings(strings: Vec<String>) -> Vec<String> {
