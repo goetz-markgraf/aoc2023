@@ -96,3 +96,24 @@ impl ReverseString for &str {
         self.chars().rev().collect::<String>()
     }
 }
+
+// functions to parse strings into other types
+pub trait Parse {
+    fn split_to_numbers(&self) -> Vec<i32>;
+}
+
+impl Parse for String {
+    fn split_to_numbers(&self) -> Vec<i32> {
+        self.split_whitespace()
+            .map(|s| s.parse::<i32>().expect(format!("should be able to convert {} to i32", s).as_str()))
+            .collect::<Vec<i32>>()
+    }
+}
+
+impl Parse for &str {
+    fn split_to_numbers(&self) -> Vec<i32> {
+        self.split_whitespace()
+            .map(|s| s.parse::<i32>().expect(format!("should be able to convert {} to i32", s).as_str()))
+            .collect::<Vec<i32>>()
+    }
+}
