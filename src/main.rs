@@ -9,6 +9,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 
 fn main() {
     solution_both_lines("day1", day1::solve1, day1::solve2, 55130, 54985);
