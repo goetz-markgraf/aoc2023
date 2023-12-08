@@ -6,9 +6,14 @@ fn calc_distance(power: i64, duration: i64) -> i64 {
 }
 
 fn find_powers_over_record(distance: i64, record: i64) -> i64 {
-    (1..=distance)
-        .filter(|&power| calc_distance(power, distance) > record)
-        .count() as i64
+    let result = (1..distance)
+        .enumerate()
+        .find(|(_, power)| calc_distance(power.to_owned(), distance) > record);
+
+    match result {
+        Some((i, _)) => 1 + distance - 2 * (i + 1) as i64,
+        None => 0,
+    }
 }
 
 pub fn solve1(input: Vec<String>) -> Result<i64, String> {
