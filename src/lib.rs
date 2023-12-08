@@ -6,8 +6,8 @@ pub fn solution<I, O>(
     solve: fn(I) -> O,
     expected: O,
 ) -> bool
-    where
-        O: PartialEq + Debug,
+where
+    O: PartialEq + Debug,
 {
     let long_file_name = format!("input/{}.txt", input_file);
     let file_content = match std::fs::read_to_string(&long_file_name) {
@@ -35,13 +35,9 @@ pub fn solution<I, O>(
     }
 }
 
-pub fn solution_lines<O>(
-    input_file: &str,
-    solve: fn(Vec<String>) -> O,
-    expected: O,
-) -> bool
-    where
-        O: PartialEq + Debug,
+pub fn solution_lines<O>(input_file: &str, solve: fn(Vec<String>) -> O, expected: O) -> bool
+where
+    O: PartialEq + Debug,
 {
     solution(input_file, parse_to_strings, solve, expected)
 }
@@ -53,8 +49,8 @@ pub fn solution_both<I, O>(
     solve2: fn(I) -> O,
     expected1: O,
     expected2: O,
-)
-    where O: PartialEq + Debug
+) where
+    O: PartialEq + Debug,
 {
     let start = std::time::Instant::now();
     solution(input_file, parse, solve1, expected1);
@@ -68,12 +64,18 @@ pub fn solution_both_lines<O>(
     solve2: fn(Vec<String>) -> O,
     expected1: O,
     expected2: O,
-)
-    where O: PartialEq + Debug
+) where
+    O: PartialEq + Debug,
 {
-    solution_both(input_file, parse_to_strings, solve1, solve2, expected1, expected2);
+    solution_both(
+        input_file,
+        parse_to_strings,
+        solve1,
+        solve2,
+        expected1,
+        expected2,
+    );
 }
-
 
 // a function the takes a vector of strings and
 // returns the same vector without changing the strings
@@ -105,7 +107,10 @@ pub trait Parse {
 impl Parse for String {
     fn split_to_numbers(&self) -> Vec<i32> {
         self.split_whitespace()
-            .map(|s| s.parse::<i32>().expect(format!("should be able to convert {} to i32", s).as_str()))
+            .map(|s| {
+                s.parse::<i32>()
+                    .expect(format!("should be able to convert {} to i32", s).as_str())
+            })
             .collect::<Vec<i32>>()
     }
 }
@@ -113,7 +118,10 @@ impl Parse for String {
 impl Parse for &str {
     fn split_to_numbers(&self) -> Vec<i32> {
         self.split_whitespace()
-            .map(|s| s.parse::<i32>().expect(format!("should be able to convert {} to i32", s).as_str()))
+            .map(|s| {
+                s.parse::<i32>()
+                    .expect(format!("should be able to convert {} to i32", s).as_str())
+            })
             .collect::<Vec<i32>>()
     }
 }
