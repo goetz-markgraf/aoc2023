@@ -40,22 +40,37 @@ lazy_static! {
     .collect();
 }
 
-fn hand_to_cards(hand: &str) -> Vec<u8> {
+fn hand_to_cards(hand: &str, with_joker: bool) -> Vec<u8> {
     hand.chars()
         .filter_map(|c| CARD_VALUES.get(&c))
+        .map(|c| if with_joker && *c == 11u8 { &1u8 } else { c })
         .cloned()
         .collect()
 }
 
-fn cards_to_type(cards: &Vec<u8>) -> Type {
+fn cards_to_type(cards: Vec<u8>, with_joker: bool) -> Type {
+    let (cards, joker_count) = if with_joker {
+        (
+            cards.iter().filter(|&c| *c != 1u8).cloned().collect(),
+            cards.iter().filter(|&c| *c == 1u8).count() as u8,
+        )
+    } else {
+        (cards, 0)
+    };
+
+    if joker_count == 5 {
+        return Type::FiveOfAKind;
+    }
+
     let mut card_counts_map: HashMap<u8, u8> = HashMap::new();
     for card in cards {
-        let count = card_counts_map.entry(*card).or_insert(0);
+        let count = card_counts_map.entry(card).or_insert(0);
         *count += 1;
     }
-    let mut card_counts = card_counts_map.values().collect::<Vec<_>>();
+    let mut card_counts = card_counts_map.values().cloned().collect::<Vec<_>>();
     card_counts.sort();
     card_counts.reverse();
+    card_counts[0] = card_counts[0] + joker_count;
 
     match card_counts.as_slice() {
         [5] => Type::FiveOfAKind,
@@ -78,13 +93,13 @@ fn compare_lists(list1: &[u8], list2: &[u8]) -> std::cmp::Ordering {
     std::cmp::Ordering::Equal
 }
 
-fn line_to_hand(line: &str) -> Hand {
+fn line_to_hand(line: &str, with_joker: bool) -> Hand {
     let mut split = line.split(" ");
     let hand = split.next().unwrap();
     let bid = split.next().unwrap().parse::<i64>().unwrap();
 
-    let cards = hand_to_cards(hand);
-    let card_type = cards_to_type(&cards);
+    let cards = hand_to_cards(hand, with_joker);
+    let card_type = cards_to_type(cards.clone(), with_joker);
     Hand {
         cards,
         card_type,
@@ -92,10 +107,10 @@ fn line_to_hand(line: &str) -> Hand {
     }
 }
 
-pub fn solve1(lines: Vec<String>) -> i64 {
+fn solve(lines: Vec<String>, with_joker: bool) -> i64 {
     let mut hands = lines
         .iter()
-        .map(|line| line_to_hand(line))
+        .map(|line| line_to_hand(line, with_joker))
         .collect::<Vec<_>>();
 
     hands.sort_by(|hand1, hand2| match hand1.card_type.cmp(&hand2.card_type) {
@@ -110,6 +125,14 @@ pub fn solve1(lines: Vec<String>) -> i64 {
         .fold(0, |acc, (i, hand)| acc + (hand.bid * (i as i64 + 1)))
 }
 
+pub fn solve1(lines: Vec<String>) -> i64 {
+    solve(lines, false)
+}
+
+pub fn solve2(lines: Vec<String>) -> i64 {
+    solve(lines, true)
+}
+
 #[cfg(test)]
 mod tests {
     use advent_of_code_2023::solution_lines;
@@ -118,9 +141,17 @@ mod tests {
 
     #[test]
     fn test_hand_to_cards() {
-        let test = hand_to_cards("53A4J");
-        let hand_type = cards_to_type(&test);
+        let test = hand_to_cards("53A4J", false);
+        let hand_type = cards_to_type(test.clone(), false);
         assert_eq!(hand_type, Type::HighCard);
+    }
+
+    #[test]
+    fn test_hand_to_cards_with_joker() {
+        let test = hand_to_cards("53A4J", true);
+        assert_eq!(test, vec![5, 3, 14, 4, 1]);
+        let hand_type = cards_to_type(test.clone(), true);
+        assert_eq!(hand_type, Type::OnePair);
     }
 
     #[test]
@@ -132,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_hand_str_to_hand() {
-        let test = line_to_hand("53A4J 231");
+        let test = line_to_hand("53A4J 231", false);
         assert_eq!(test.cards, vec![5, 3, 14, 4, 11]);
         assert_eq!(test.card_type, Type::HighCard);
         assert_eq!(test.bid, 231);
@@ -147,6 +178,18 @@ mod tests {
     #[test]
     fn test_solve1() {
         let result = solution_lines("day7", solve1, 251121738);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2_test() {
+        let result = solution_lines("day7_test", solve2, 5905);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2() {
+        let result = solution_lines("day7", solve2, 251421071);
         assert!(result)
     }
 }
