@@ -27,7 +27,7 @@ fn find_all_diffs(line: &Vec<i64>) -> Vec<Vec<i64>> {
     all_diffs
 }
 
-fn add_numbers(mut lines: Vec<Vec<i64>>) -> Vec<Vec<i64>> {
+fn add_numbers_last(mut lines: Vec<Vec<i64>>) -> Vec<Vec<i64>> {
     lines.reverse();
     let mut add: i64 = 0;
     for line in &mut lines {
@@ -38,10 +38,27 @@ fn add_numbers(mut lines: Vec<Vec<i64>>) -> Vec<Vec<i64>> {
     lines
 }
 
+fn add_numbers_first(mut lines: Vec<Vec<i64>>) -> Vec<Vec<i64>> {
+    lines.reverse();
+    let mut sub: i64 = 0;
+    for line in &mut lines {
+        sub = line.first().unwrap() - sub;
+        line.insert(0, sub);
+    }
+
+    lines
+}
+
 fn find_next_number(line: &Vec<i64>) -> i64 {
     let diffs = find_all_diffs(line);
-    let diffs = add_numbers(diffs);
+    let diffs = add_numbers_last(diffs);
     diffs.last().unwrap().last().unwrap().clone()
+}
+
+fn find_first_number(line: &Vec<i64>) -> i64 {
+    let diffs = find_all_diffs(line);
+    let diffs = add_numbers_first(diffs);
+    diffs.last().unwrap().first().unwrap().clone()
 }
 
 pub fn solve1(lines: Vec<String>) -> i64 {
@@ -54,6 +71,19 @@ pub fn solve1(lines: Vec<String>) -> i64 {
                 .collect::<Vec<i64>>()
         })
         .map(|line| find_next_number(&line))
+        .sum()
+}
+
+pub fn solve2(lines: Vec<String>) -> i64 {
+    lines
+        .iter()
+        .map(|line| {
+            line.split_to_numbers()
+                .iter()
+                .map(|&x| x as i64)
+                .collect::<Vec<i64>>()
+        })
+        .map(|line| find_first_number(&line))
         .sum()
 }
 
@@ -72,6 +102,18 @@ mod tests {
     #[test]
     fn test_solve1() {
         let result = solution_lines("day9", solve1, 1987402313);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2_test() {
+        let result = solution_lines("day9_test", solve2, 2);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2() {
+        let result = solution_lines("day9", solve2, 900);
         assert!(result)
     }
 
@@ -97,13 +139,13 @@ mod tests {
     }
 
     #[test]
-    fn test_add_numbers() {
+    fn test_add_numbers_last() {
         let input = vec![
             vec![0, 3, 6, 9, 12, 15],
             vec![3, 3, 3, 3, 3],
             vec![0, 0, 0, 0],
         ];
-        let output = add_numbers(input);
+        let output = add_numbers_last(input);
         assert_eq!(
             output,
             vec![
@@ -115,9 +157,34 @@ mod tests {
     }
 
     #[test]
+    fn test_find_numbers_first() {
+        let input = vec![
+            vec![0, 3, 6, 9, 12, 15],
+            vec![3, 3, 3, 3, 3],
+            vec![0, 0, 0, 0],
+        ];
+        let output = add_numbers_first(input);
+        assert_eq!(
+            output,
+            vec![
+                vec![0, 0, 0, 0, 0],
+                vec![3, 3, 3, 3, 3, 3],
+                vec![-3, 0, 3, 6, 9, 12, 15],
+            ]
+        );
+    }
+
+    #[test]
     fn test_find_next_number() {
         let input = vec![0, 3, 6];
         let next_number = find_next_number(&input);
         assert_eq!(next_number, 9);
+    }
+
+    #[test]
+    fn test_find_first_number() {
+        let input = vec![0, 3, 6];
+        let next_number = find_first_number(&input);
+        assert_eq!(next_number, -3);
     }
 }
