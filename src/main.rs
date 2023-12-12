@@ -17,5 +17,6 @@ fn main() {
     solution_both_lines("day4", day4::solve1, day4::solve2, 23028, 9236992);
     solution_both_lines("day6", day6::solve1, day6::solve2, Ok(131376), Ok(34123437));
     solution_both_lines("day7", day7::solve1, day7::solve2, 251121738, 251421071);
+    solution_both_lines("day8", day8::solve1, day8::solve2, 18023, 14449445933179);
     solution_both_lines("day9", day9::solve1, day9::solve2, 1987402313, 900);
 }

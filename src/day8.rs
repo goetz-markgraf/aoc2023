@@ -41,7 +41,16 @@ fn is_finished(node_names: &Vec<String>) -> bool {
     node_names.iter().all(|n| n.ends_with("Z"))
 }
 
-pub fn solve1(lines: Vec<String>) -> i32 {
+// function to calculate the greatest common denominator of two integers
+fn gcd(a: i64, b: i64) -> i64 {
+    if b == 0 {
+        a
+    } else {
+        gcd(b, a % b)
+    }
+}
+
+pub fn solve1(lines: Vec<String>) -> i64 {
     let mut pattern = lines[0].chars().into_iter().cycle();
 
     let node_lines = lines[2..].to_vec();
@@ -63,30 +72,38 @@ pub fn solve1(lines: Vec<String>) -> i32 {
     count
 }
 
-pub fn solve2(lines: Vec<String>) -> i32 {
+pub fn solve2(lines: Vec<String>) -> i64 {
+    let p_length = lines[0].len() as i64;
     let mut pattern = lines[0].chars().into_iter().cycle();
 
     let node_lines = lines[2..].to_vec();
     let nodes_map = lines_to_nodes_map(&node_lines);
-    let mut count = 0;
-    let mut nodes = find_start_nodes(&nodes_map);
-    while !is_finished(&nodes) {
-        let direction = pattern.next().unwrap();
-        nodes = nodes
-            .iter()
-            .map(|n| {
-                let this_node = nodes_map.get(n).unwrap();
+
+    let ghosts = find_start_nodes(&nodes_map);
+    let counts = ghosts
+        .iter()
+        .map(|g| {
+            let mut node = g.clone();
+            let mut count: i64 = 0;
+            while !(node.ends_with("Z") && count % p_length == 0) {
+                let this_node = nodes_map.get(&node).unwrap();
+                let direction = pattern.next().unwrap();
                 match direction {
-                    'L' => this_node.left.clone(),
-                    'R' => this_node.right.clone(),
+                    'L' => node = this_node.left.clone(),
+                    'R' => node = this_node.right.clone(),
                     _ => panic!("Unknown direction {}", direction),
                 }
-            })
-            .collect::<Vec<String>>();
-        count += 1
-    }
+                count += 1;
+            }
+            count
+        })
+        .collect::<Vec<i64>>();
 
-    count
+    let mut lcm: i64 = counts[0];
+    for i in 1..counts.len() {
+        lcm = lcm * counts[i] / gcd(lcm, counts[i]);
+    }
+    return lcm;
 }
 
 #[cfg(test)]
@@ -115,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_solve2() {
-        let result = solution_lines("day8", solve2, 0);
+        let result = solution_lines("day8", solve2, 14449445933179);
         assert!(result)
     }
 
