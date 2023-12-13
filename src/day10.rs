@@ -47,6 +47,47 @@ fn get_char(f: &Field, pos: &Pos) -> char {
     f.0[*y][*x]
 }
 
+fn do_step(field: &Field, pos: &Pos, dir: &Direction) -> (Pos, Direction) {
+    match dir {
+        Direction::Up => {
+            if get_char(&field, &Pos(pos.0, pos.1 - 1)) == '|' {
+                (Pos(pos.0, pos.1 - 1), Direction::Up)
+            } else if get_char(&field, &Pos(pos.0, pos.1 - 1)) == 'F' {
+                (Pos(pos.0, pos.1 - 1), Direction::Right)
+            } else {
+                (Pos(pos.0, pos.1 - 1), Direction::Left)
+            }
+        }
+        Direction::Down => {
+            if get_char(&field, &Pos(pos.0, pos.1 + 1)) == '|' {
+                (Pos(pos.0, pos.1 + 1), Direction::Down)
+            } else if get_char(&field, &Pos(pos.0, pos.1 + 1)) == 'J' {
+                (Pos(pos.0, pos.1 + 1), Direction::Left)
+            } else {
+                (Pos(pos.0, pos.1 + 1), Direction::Right)
+            }
+        }
+        Direction::Left => {
+            if get_char(&field, &Pos(pos.0 - 1, pos.1)) == '-' {
+                (Pos(pos.0 - 1, pos.1), Direction::Left)
+            } else if get_char(&field, &Pos(pos.0 - 1, pos.1)) == 'F' {
+                (Pos(pos.0 - 1, pos.1), Direction::Down)
+            } else {
+                (Pos(pos.0 - 1, pos.1), Direction::Up)
+            }
+        }
+        Direction::Right => {
+            if get_char(&field, &Pos(pos.0 + 1, pos.1)) == '-' {
+                (Pos(pos.0 + 1, pos.1), Direction::Right)
+            } else if get_char(&field, &Pos(pos.0 + 1, pos.1)) == 'J' {
+                (Pos(pos.0 + 1, pos.1), Direction::Up)
+            } else {
+                (Pos(pos.0 + 1, pos.1), Direction::Down)
+            }
+        }
+    }
+}
+
 pub fn solve1(lines: Vec<String>) -> i64 {
     let field = parse_input(&lines);
     let mut pos = find_start_field(&field);
@@ -54,44 +95,7 @@ pub fn solve1(lines: Vec<String>) -> i64 {
     let mut dir = find_start_direction(&field, &pos);
 
     while !(get_char(&field, &pos) == 'S' && steps > 0) {
-        (pos, dir) = match dir {
-            Direction::Up => {
-                if get_char(&field, &Pos(pos.0, pos.1 - 1)) == '|' {
-                    (Pos(pos.0, pos.1 - 1), Direction::Up)
-                } else if get_char(&field, &Pos(pos.0, pos.1 - 1)) == 'F' {
-                    (Pos(pos.0, pos.1 - 1), Direction::Right)
-                } else {
-                    (Pos(pos.0, pos.1 - 1), Direction::Left)
-                }
-            }
-            Direction::Down => {
-                if get_char(&field, &Pos(pos.0, pos.1 + 1)) == '|' {
-                    (Pos(pos.0, pos.1 + 1), Direction::Down)
-                } else if get_char(&field, &Pos(pos.0, pos.1 + 1)) == 'J' {
-                    (Pos(pos.0, pos.1 + 1), Direction::Left)
-                } else {
-                    (Pos(pos.0, pos.1 + 1), Direction::Right)
-                }
-            }
-            Direction::Left => {
-                if get_char(&field, &Pos(pos.0 - 1, pos.1)) == '-' {
-                    (Pos(pos.0 - 1, pos.1), Direction::Left)
-                } else if get_char(&field, &Pos(pos.0 - 1, pos.1)) == 'F' {
-                    (Pos(pos.0 - 1, pos.1), Direction::Down)
-                } else {
-                    (Pos(pos.0 - 1, pos.1), Direction::Up)
-                }
-            }
-            Direction::Right => {
-                if get_char(&field, &Pos(pos.0 + 1, pos.1)) == '-' {
-                    (Pos(pos.0 + 1, pos.1), Direction::Right)
-                } else if get_char(&field, &Pos(pos.0 + 1, pos.1)) == 'J' {
-                    (Pos(pos.0 + 1, pos.1), Direction::Up)
-                } else {
-                    (Pos(pos.0 + 1, pos.1), Direction::Down)
-                }
-            }
-        };
+        (pos, dir) = do_step(&field, &pos, &dir);
         steps += 1;
     }
 
