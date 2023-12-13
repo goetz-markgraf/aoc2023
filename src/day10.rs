@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-struct Field(Vec<Vec<char>>);
+struct Field(Vec<Vec<(char, bool)>>);
 
 #[derive(Debug, PartialEq)]
 struct Pos(usize, usize);
@@ -12,90 +12,102 @@ enum Direction {
     Right,
 }
 
-fn parse_input(input: &Vec<String>) -> Field {
-    Field(input.iter().map(|l| l.chars().collect()).collect())
-}
+impl Field {
+    fn parse_input(input: &Vec<String>) -> Field {
+        Field(
+            input
+                .iter()
+                .map(|l| l.chars().map(|c| (c, false)).collect())
+                .collect(),
+        )
+    }
 
-fn find_start_field(f: &Field) -> Pos {
-    for (y, row) in f.0.iter().enumerate() {
-        for (x, c) in row.iter().enumerate() {
-            if *c == 'S' {
-                return Pos(x, y);
+    fn find_start_field(&self) -> Pos {
+        for (y, row) in self.0.iter().enumerate() {
+            for (x, c) in row.iter().enumerate() {
+                let p = Pos(x, y);
+                if (*c).0 == 'S' {
+                    return p;
+                }
+            }
+        }
+        panic!("No start found");
+    }
+
+    fn at(&self, pos: &Pos) -> char {
+        let Pos(x, y) = pos;
+        self.0[*y][*x].0
+    }
+
+    fn set_at(&mut self, pos: &Pos, in_loop: bool) {
+        let Pos(x, y) = pos;
+        self.0[*y][*x].1 = in_loop
+    }
+
+    fn do_step(&self, pos: &Pos, dir: &Direction) -> (Pos, Direction) {
+        match dir {
+            Direction::Up => {
+                if self.at(&Pos(pos.0, pos.1 - 1)) == '|' {
+                    (Pos(pos.0, pos.1 - 1), Direction::Up)
+                } else if self.at(&Pos(pos.0, pos.1 - 1)) == 'F' {
+                    (Pos(pos.0, pos.1 - 1), Direction::Right)
+                } else {
+                    (Pos(pos.0, pos.1 - 1), Direction::Left)
+                }
+            }
+            Direction::Down => {
+                if self.at(&Pos(pos.0, pos.1 + 1)) == '|' {
+                    (Pos(pos.0, pos.1 + 1), Direction::Down)
+                } else if self.at(&Pos(pos.0, pos.1 + 1)) == 'J' {
+                    (Pos(pos.0, pos.1 + 1), Direction::Left)
+                } else {
+                    (Pos(pos.0, pos.1 + 1), Direction::Right)
+                }
+            }
+            Direction::Left => {
+                if self.at(&Pos(pos.0 - 1, pos.1)) == '-' {
+                    (Pos(pos.0 - 1, pos.1), Direction::Left)
+                } else if self.at(&Pos(pos.0 - 1, pos.1)) == 'F' {
+                    (Pos(pos.0 - 1, pos.1), Direction::Down)
+                } else {
+                    (Pos(pos.0 - 1, pos.1), Direction::Up)
+                }
+            }
+            Direction::Right => {
+                if self.at(&Pos(pos.0 + 1, pos.1)) == '-' {
+                    (Pos(pos.0 + 1, pos.1), Direction::Right)
+                } else if self.at(&Pos(pos.0 + 1, pos.1)) == 'J' {
+                    (Pos(pos.0 + 1, pos.1), Direction::Up)
+                } else {
+                    (Pos(pos.0 + 1, pos.1), Direction::Down)
+                }
             }
         }
     }
-    panic!("No start found");
-}
-
-fn find_start_direction(f: &Field, pos: &Pos) -> Direction {
-    let Pos(x, y) = pos;
-    if y > &0 && "7|F".contains(f.0[y - 1][*x]) {
-        Direction::Up
-    } else if y < &(f.0.len() - 1) && "L|J".contains(f.0[y + 1][*x]) {
-        Direction::Down
-    } else if x > &0 && "L-F".contains(f.0[*y][x - 1]) {
-        Direction::Left
-    } else if x < &(f.0[*y].len() - 1) && "J-7".contains(f.0[*y][x + 1]) {
-        Direction::Right
-    } else {
-        panic!("No start direction found");
-    }
-}
-
-fn get_char(f: &Field, pos: &Pos) -> char {
-    let Pos(x, y) = pos;
-    f.0[*y][*x]
-}
-
-fn do_step(field: &Field, pos: &Pos, dir: &Direction) -> (Pos, Direction) {
-    match dir {
-        Direction::Up => {
-            if get_char(&field, &Pos(pos.0, pos.1 - 1)) == '|' {
-                (Pos(pos.0, pos.1 - 1), Direction::Up)
-            } else if get_char(&field, &Pos(pos.0, pos.1 - 1)) == 'F' {
-                (Pos(pos.0, pos.1 - 1), Direction::Right)
-            } else {
-                (Pos(pos.0, pos.1 - 1), Direction::Left)
-            }
-        }
-        Direction::Down => {
-            if get_char(&field, &Pos(pos.0, pos.1 + 1)) == '|' {
-                (Pos(pos.0, pos.1 + 1), Direction::Down)
-            } else if get_char(&field, &Pos(pos.0, pos.1 + 1)) == 'J' {
-                (Pos(pos.0, pos.1 + 1), Direction::Left)
-            } else {
-                (Pos(pos.0, pos.1 + 1), Direction::Right)
-            }
-        }
-        Direction::Left => {
-            if get_char(&field, &Pos(pos.0 - 1, pos.1)) == '-' {
-                (Pos(pos.0 - 1, pos.1), Direction::Left)
-            } else if get_char(&field, &Pos(pos.0 - 1, pos.1)) == 'F' {
-                (Pos(pos.0 - 1, pos.1), Direction::Down)
-            } else {
-                (Pos(pos.0 - 1, pos.1), Direction::Up)
-            }
-        }
-        Direction::Right => {
-            if get_char(&field, &Pos(pos.0 + 1, pos.1)) == '-' {
-                (Pos(pos.0 + 1, pos.1), Direction::Right)
-            } else if get_char(&field, &Pos(pos.0 + 1, pos.1)) == 'J' {
-                (Pos(pos.0 + 1, pos.1), Direction::Up)
-            } else {
-                (Pos(pos.0 + 1, pos.1), Direction::Down)
-            }
+    fn find_start_direction(&self, pos: &Pos) -> Direction {
+        let Pos(x, y) = pos;
+        if y > &0 && "7|F".contains(self.0[y - 1][*x].0) {
+            Direction::Up
+        } else if y < &(self.0.len() - 1) && "L|J".contains(self.0[y + 1][*x].0) {
+            Direction::Down
+        } else if x > &0 && "L-F".contains(self.0[*y][x - 1].0) {
+            Direction::Left
+        } else if x < &(self.0[*y].len() - 1) && "J-7".contains(self.0[*y][x + 1].0) {
+            Direction::Right
+        } else {
+            panic!("No start direction found");
         }
     }
 }
 
 pub fn solve1(lines: Vec<String>) -> i64 {
-    let field = parse_input(&lines);
-    let mut pos = find_start_field(&field);
+    let field = Field::parse_input(&lines);
+    let mut pos = field.find_start_field();
     let mut steps = 0i64;
-    let mut dir = find_start_direction(&field, &pos);
+    let mut dir = field.find_start_direction(&pos);
 
-    while !(get_char(&field, &pos) == 'S' && steps > 0) {
-        (pos, dir) = do_step(&field, &pos, &dir);
+    while field.at(&pos) != 'S' || steps == 0 {
+        (pos, dir) = field.do_step(&pos, &dir);
         steps += 1;
     }
 
@@ -106,7 +118,7 @@ pub fn solve1(lines: Vec<String>) -> i64 {
 mod tests {
     use advent_of_code_2023::solution_lines;
 
-    use super::{find_start_direction, find_start_field, parse_input, solve1, Direction, Pos};
+    use super::{solve1, Direction, Field, Pos};
 
     #[test]
     fn test_solve1_test() {
@@ -129,13 +141,13 @@ mod tests {
             String::from("|F--J"),
             String::from("LJ.LJ"),
         ];
-        let field = parse_input(&input);
+        let field = Field::parse_input(&input);
         assert_eq!(field.0.len(), 5);
         assert_eq!(field.0[0].len(), 5);
-        assert_eq!(field.0[0][0], '7');
-        assert_eq!(field.0[2][0], 'S');
-        assert_eq!(field.0[1][0], '.');
-        assert_eq!(field.0[3][3], '-');
+        assert_eq!(field.0[0][0].0, '7');
+        assert_eq!(field.0[2][0].0, 'S');
+        assert_eq!(field.0[1][0].0, '.');
+        assert_eq!(field.0[3][3].0, '-');
     }
 
     #[test]
@@ -147,8 +159,8 @@ mod tests {
             String::from("|F--J"),
             String::from("LJ.LJ"),
         ];
-        let field = parse_input(&input);
-        let pos = find_start_field(&field);
+        let field = Field::parse_input(&input);
+        let pos = field.find_start_field();
         assert_eq!(pos, Pos(0, 2))
     }
 
@@ -161,9 +173,9 @@ mod tests {
             String::from("|F--J"),
             String::from("LJ.LJ"),
         ];
-        let field = parse_input(&input);
-        let pos = find_start_field(&field);
-        let dir = find_start_direction(&field, &pos);
+        let field = Field::parse_input(&input);
+        let pos = field.find_start_field();
+        let dir = field.find_start_direction(&pos);
         assert_eq!(dir, Direction::Down)
     }
 }
