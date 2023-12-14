@@ -2,6 +2,7 @@ use advent_of_code_2023::solution_both_lines;
 
 mod day1;
 mod day10;
+mod day11;
 mod day2;
 mod day3;
 mod day4;

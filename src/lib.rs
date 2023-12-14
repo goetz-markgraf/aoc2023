@@ -125,3 +125,12 @@ impl Parse for &str {
             .collect::<Vec<i32>>()
     }
 }
+
+#[macro_export]
+macro_rules! s {
+    ($lit:expr) => {{
+        let mut s = String::new();
+        s.push_str($lit);
+        s
+    }};
+}
