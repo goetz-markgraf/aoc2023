@@ -37,17 +37,29 @@ fn find_empty_columns(input: &Vec<String>) -> Vec<usize> {
         .collect()
 }
 
-fn enlarge_galaxy_row(galaxies: Vec<Galaxy>, row: usize) -> Vec<Galaxy> {
+fn enlarge_galaxy_row(galaxies: Vec<Galaxy>, row: usize, growth: usize) -> Vec<Galaxy> {
     galaxies
         .into_iter()
-        .map(|g| if g.1 > row { Galaxy(g.0, g.1 + 1) } else { g })
+        .map(|g| {
+            if g.1 > row {
+                Galaxy(g.0, g.1 + growth)
+            } else {
+                g
+            }
+        })
         .collect()
 }
 
-fn enlarge_galaxy_column(galaxies: Vec<Galaxy>, col: usize) -> Vec<Galaxy> {
+fn enlarge_galaxy_column(galaxies: Vec<Galaxy>, col: usize, growth: usize) -> Vec<Galaxy> {
     galaxies
         .into_iter()
-        .map(|g| if g.0 > col { Galaxy(g.0 + 1, g.1) } else { g })
+        .map(|g| {
+            if g.0 > col {
+                Galaxy(g.0 + growth, g.1)
+            } else {
+                g
+            }
+        })
         .collect()
 }
 
@@ -55,6 +67,7 @@ fn enlarge_all_galaxies(
     galaxies: Vec<Galaxy>,
     rows: &Vec<usize>,
     cols: &Vec<usize>,
+    growth: usize,
 ) -> Vec<Galaxy> {
     let mut rows = rows.clone();
     rows.sort_by(|a, b| b.cmp(a));
@@ -63,10 +76,10 @@ fn enlarge_all_galaxies(
 
     let mut galaxies = galaxies;
     for row in rows {
-        galaxies = enlarge_galaxy_row(galaxies, row)
+        galaxies = enlarge_galaxy_row(galaxies, row, growth)
     }
     for col in cols {
-        galaxies = enlarge_galaxy_column(galaxies, col)
+        galaxies = enlarge_galaxy_column(galaxies, col, growth)
     }
 
     galaxies
@@ -88,29 +101,44 @@ fn find_all_distances(galaxies: &Vec<Galaxy>) -> Vec<usize> {
     distances
 }
 
-pub fn solve1(input: Vec<String>) -> i64 {
+fn solve_with_growth(input: Vec<String>, growth: usize) -> usize {
     let galaxies = find_galaxies(&input);
     let empty_rows = find_empty_rows(&input);
     let empy_cols = find_empty_columns(&input);
-    let galaxies = enlarge_all_galaxies(galaxies, &empty_rows, &empy_cols);
+    let galaxies = enlarge_all_galaxies(galaxies, &empty_rows, &empy_cols, growth);
 
     let distances = find_all_distances(&galaxies);
 
-    distances.iter().map(|d| *d as i64).sum()
+    distances.iter().map(|d| *d).sum()
+}
+
+pub fn solve1(input: Vec<String>) -> usize {
+    solve_with_growth(input, 1)
+}
+
+fn solve2_growth_10(input: Vec<String>) -> usize {
+    solve_with_growth(input, 9)
+}
+
+fn solve2_growth_100(input: Vec<String>) -> usize {
+    solve_with_growth(input, 99)
+}
+
+pub fn solve2(input: Vec<String>) -> usize {
+    solve_with_growth(input, 1_000_000 - 1)
 }
 
 #[cfg(test)]
 mod tests {
     use advent_of_code_2023::{s, solution_lines};
 
-    use crate::day11::calculate_distance;
-    use crate::day11::enlarge_galaxy_column;
-    use crate::day11::enlarge_galaxy_row;
-    use crate::day11::find_empty_columns;
     use crate::day11::find_empty_rows;
     use crate::day11::find_galaxies;
-    use crate::day11::solve1;
     use crate::day11::Galaxy;
+    use crate::day11::{calculate_distance, solve1};
+    use crate::day11::{enlarge_galaxy_column, solve2_growth_10};
+    use crate::day11::{enlarge_galaxy_row, solve2_growth_100};
+    use crate::day11::{find_empty_columns, solve2};
 
     #[test]
     fn test_solve1_test() {
@@ -121,6 +149,24 @@ mod tests {
     #[test]
     fn test_solve1() {
         let result = solution_lines("day11", solve1, 10228230);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2_10_test() {
+        let result = solution_lines("day11_test", solve2_growth_10, 1030);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2_100_test() {
+        let result = solution_lines("day11_test", solve2_growth_100, 8410);
+        assert!(result)
+    }
+
+    #[test]
+    fn test_solve2() {
+        let result = solution_lines("day11", solve2, 447073334102);
         assert!(result)
     }
 
@@ -161,13 +207,13 @@ mod tests {
     #[test]
     fn test_enlarge_galaxy_row() {
         let input = vec![Galaxy(3, 0), Galaxy(0, 2), Galaxy(4, 2)];
-        let result = enlarge_galaxy_row(input, 1);
+        let result = enlarge_galaxy_row(input, 1, 1);
         assert_eq!(result[0], Galaxy(3, 0));
         assert_eq!(result[1], Galaxy(0, 3));
         assert_eq!(result[2], Galaxy(4, 3));
 
         let input = vec![Galaxy(3, 0), Galaxy(0, 2), Galaxy(4, 2)];
-        let result = enlarge_galaxy_row(input, 4);
+        let result = enlarge_galaxy_row(input, 4, 1);
         assert_eq!(result[0], Galaxy(3, 0));
         assert_eq!(result[1], Galaxy(0, 2));
         assert_eq!(result[2], Galaxy(4, 2));
@@ -176,13 +222,13 @@ mod tests {
     #[test]
     fn test_enlarge_galaxy_colum() {
         let input = vec![Galaxy(3, 0), Galaxy(0, 2), Galaxy(4, 2)];
-        let result = enlarge_galaxy_column(input, 1);
+        let result = enlarge_galaxy_column(input, 1, 1);
         assert_eq!(result[0], Galaxy(4, 0));
         assert_eq!(result[1], Galaxy(0, 2));
         assert_eq!(result[2], Galaxy(5, 2));
 
         let input = vec![Galaxy(3, 0), Galaxy(0, 2), Galaxy(4, 2)];
-        let result = enlarge_galaxy_column(input, 4);
+        let result = enlarge_galaxy_column(input, 4, 1);
         assert_eq!(result[0], Galaxy(3, 0));
         assert_eq!(result[1], Galaxy(0, 2));
         assert_eq!(result[2], Galaxy(4, 2));
