@@ -37,10 +37,6 @@ fn find_start_nodes(nodes_map: &HashMap<String, Nodes>) -> Vec<String> {
         .collect()
 }
 
-fn is_finished(node_names: &Vec<String>) -> bool {
-    node_names.iter().all(|n| n.ends_with("Z"))
-}
-
 // function to calculate the greatest common denominator of two integers
 fn gcd(a: i64, b: i64) -> i64 {
     if b == 0 {
@@ -147,18 +143,6 @@ mod tests {
         let mut start_nodes = find_start_nodes(&nodes_map);
         start_nodes.sort();
         assert_eq!(start_nodes, vec!["AA".to_string(), "CA".to_string()]);
-    }
-
-    #[test]
-    fn test_is_not_finished() {
-        let node_names = vec!["AAA".to_string(), "ZZZ".to_string()];
-        assert!(!is_finished(&node_names));
-    }
-
-    #[test]
-    fn test_is_finished() {
-        let node_names = vec!["AAZ".to_string(), "ZZZ".to_string()];
-        assert!(is_finished(&node_names));
     }
 
     #[test]
