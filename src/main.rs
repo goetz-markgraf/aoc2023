@@ -30,4 +30,5 @@ fn main() {
         10228230,
         447073334102,
     );
+    solution_both_lines("day15", day15::solve1, day15::solve2, 510801, 212763);
 }
